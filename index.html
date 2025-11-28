@@ -299,9 +299,7 @@
   <main id="tab-content"></main>
 
   <script>
-    // Вставь сюда URL развёрнутого Apps Script Web App
-    const SCRIPT_BASE_URL = 'https://script.google.com/macros/s/AKfycbwsuyPpL5DaRdYkzcCV4FKGQckqVJiR97O0ZeoFZ2qHTAKWyQNFS0ahyTdRSSigmoNq/exec';
-
+    // Сценарии: добавлено поле topicUrl, которое будет заполняться из localStorage
     const scenarios = [
       { id: 1, title: 'Kaggle - Tesseract OCR for Simple Text CAPTCHAs', gid: '2047717572', topicUrl: '' },
       { id: 2, title: 'Reddit - Which CAPTCHA solving service is best', gid: '226647333', topicUrl: '' },
@@ -309,9 +307,6 @@
       { id: 4, title: 'StackOverflow - How to solve CAPTCHA using Python', gid: '125415752', topicUrl: '' },
       { id: 5, title: 'StackExchange - How to Bypass Captchas in Chrome', gid: '1237946684', topicUrl: '' }
     ];
-
-    let scenarioLinks = {};
-    let linksLoaded = false;
 
     const employees = [
       "Divine",
@@ -710,37 +705,47 @@
       }
     ];
 
-    const scenarioMap = {};
-    scenarios.forEach(s => {
-      scenarioMap[s.title] = s;
-    });
+    // =========================
+    // Локальное хранилище ссылок на топики
+    // =========================
 
-    function applyScenarioLinks() {
+    let scenarioLinks = {};
+    (function initScenarioLinksFromStorage() {
+      try {
+        const raw = localStorage.getItem('qaScenarioLinks');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && typeof parsed === 'object') {
+            scenarioLinks = parsed;
+          }
+        }
+      } catch (e) {
+        console.error('Failed to read qaScenarioLinks from localStorage', e);
+        scenarioLinks = {};
+      }
+
+      // Применяем ссылки к сценариям
       scenarios.forEach(s => {
         const key = String(s.id);
         if (scenarioLinks[key]) {
           s.topicUrl = scenarioLinks[key];
         }
       });
+    })();
+
+    function saveScenarioLinksToStorage() {
+      try {
+        localStorage.setItem('qaScenarioLinks', JSON.stringify(scenarioLinks));
+      } catch (e) {
+        console.error('Failed to save qaScenarioLinks to localStorage', e);
+      }
     }
 
-    function loadScenarioLinks() {
-      fetch(SCRIPT_BASE_URL)
-        .then(response => response.json())
-        .then(data => {
-          if (data && data.ok && data.links) {
-            scenarioLinks = data.links;
-            applyScenarioLinks();
-          }
-          linksLoaded = true;
-          renderActiveTab();
-        })
-        .catch(error => {
-          console.error('Failed to load scenario links', error);
-          linksLoaded = true;
-          renderActiveTab();
-        });
-    }
+    // Быстрый доступ по названию
+    const scenarioMap = {};
+    scenarios.forEach(s => {
+      scenarioMap[s.title] = s;
+    });
 
     function getScenarioLinkHtml(scenarioTitle) {
       const scenario = scenarioMap[scenarioTitle];
@@ -750,11 +755,15 @@
       return `<a href="${scenario.topicUrl}" target="_blank" rel="noopener noreferrer">${scenarioTitle}</a>`;
     }
 
+    // =========================
+    // Рендер вкладок
+    // =========================
+
     function renderByDaysTab(selectedDayIdx = 0) {
       const dayTabs = days
-        .map((d, i) => {
-          return `<button class="day-btn${i === selectedDayIdx ? ' active' : ''}" data-day-idx="${i}">Day ${d.day}</button>`;
-        })
+        .map((d, i) =>
+          `<button class="day-btn${i === selectedDayIdx ? ' active' : ''}" data-day-idx="${i}">Day ${d.day}</button>`
+        )
         .join('');
 
       const participants = days[selectedDayIdx].participants;
@@ -796,14 +805,14 @@
 
     function renderStatsTab() {
       const rows = stats
-        .map(e => {
-          return `<tr>
+        .map(e => `
+          <tr>
             <td>${e.name}</td>
             <td>${e.total}</td>
             <td>${e.creates}</td>
             <td>${e.comments}</td>
-          </tr>`;
-        })
+          </tr>
+        `)
         .join('');
 
       return `
@@ -842,6 +851,7 @@
               </button>
             </div>
           `;
+
           const participantsHtml =
             matches.length === 0
               ? '<li>Нет</li>'
@@ -870,12 +880,7 @@
         })
         .join('');
 
-      const loadingNote = linksLoaded
-        ? ''
-        : '<p style="margin-bottom:8px;color:#666;">Loading topic links from Google Sheets...</p>';
-
       return `
-        ${loadingNote}
         <div class="table-wrap">
           <table>
             <thead>
@@ -1012,33 +1017,12 @@
               return;
             }
 
-            const body = {
-              scenarioId: id,
-              topicUrl: newUrl,
-              scenarioTitle: scenario ? scenario.title : ''
-            };
-
-            fetch(SCRIPT_BASE_URL, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(body)
-            })
-              .then(r => r.json())
-              .then(resp => {
-                if (!resp || !resp.ok) {
-                  alert('Не удалось сохранить ссылку. Попробуйте ещё раз или проверьте Apps Script.');
-                  return;
-                }
-                scenarioLinks[String(id)] = newUrl;
-                if (scenario) {
-                  scenario.topicUrl = newUrl;
-                }
-                renderActiveTab();
-              })
-              .catch(err => {
-                console.error('Failed to save topic url', err);
-                alert('Ошибка при сохранении ссылки. Подробности — в консоли разработчика.');
-              });
+            scenarioLinks[String(id)] = newUrl;
+            if (scenario) {
+              scenario.topicUrl = newUrl;
+            }
+            saveScenarioLinksToStorage();
+            renderActiveTab();
           });
         });
 
@@ -1067,9 +1051,7 @@
       });
     });
 
-    // Первый рендер (без ссылок, чтобы был интерфейс), параллельно тянем данные
     renderActiveTab();
-    loadScenarioLinks();
   </script>
 </body>
 </html>
