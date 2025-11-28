@@ -351,7 +351,7 @@ scenarios.forEach(s => { scenarioMap[s.title] = s; });
 
 function renderByDaysTab(selectedDayIdx = 0) {
   const dayTabs = days.map((d, i) => `
-    <button class="day-btn${i===selectedDayIdx?' active':''}" data-day-idx="${i}">День ${d.day}</button>`).join('');
+    <button class="day-btn${i===selectedDayIdx?' active':''}" data-day-idx="${i}">Day${d.day}</button>`).join('');
   const participants = days[selectedDayIdx].participants;
   const rows = participants.map(p => `
     <tr>
