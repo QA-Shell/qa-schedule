@@ -299,6 +299,9 @@
   <main id="tab-content"></main>
 
   <script>
+    // Вставь сюда URL развёрнутого Apps Script Web App
+    const SCRIPT_BASE_URL = 'https://script.google.com/macros/s/AKfycbwsuyPpL5DaRdYkzcCV4FKGQckqVJiR97O0ZeoFZ2qHTAKWyQNFS0ahyTdRSSigmoNq/exec';
+
     const scenarios = [
       { id: 1, title: 'Kaggle - Tesseract OCR for Simple Text CAPTCHAs', gid: '2047717572', topicUrl: '' },
       { id: 2, title: 'Reddit - Which CAPTCHA solving service is best', gid: '226647333', topicUrl: '' },
@@ -308,21 +311,7 @@
     ];
 
     let scenarioLinks = {};
-
-    const savedLinks = localStorage.getItem('qaScenarioLinks');
-    if (savedLinks) {
-      try {
-        scenarioLinks = JSON.parse(savedLinks);
-      } catch (e) {
-        scenarioLinks = {};
-      }
-    }
-
-    scenarios.forEach(s => {
-      if (scenarioLinks[s.id]) {
-        s.topicUrl = scenarioLinks[s.id];
-      }
-    });
+    let linksLoaded = false;
 
     const employees = [
       "Divine",
@@ -726,6 +715,33 @@
       scenarioMap[s.title] = s;
     });
 
+    function applyScenarioLinks() {
+      scenarios.forEach(s => {
+        const key = String(s.id);
+        if (scenarioLinks[key]) {
+          s.topicUrl = scenarioLinks[key];
+        }
+      });
+    }
+
+    function loadScenarioLinks() {
+      fetch(SCRIPT_BASE_URL)
+        .then(response => response.json())
+        .then(data => {
+          if (data && data.ok && data.links) {
+            scenarioLinks = data.links;
+            applyScenarioLinks();
+          }
+          linksLoaded = true;
+          renderActiveTab();
+        })
+        .catch(error => {
+          console.error('Failed to load scenario links', error);
+          linksLoaded = true;
+          renderActiveTab();
+        });
+    }
+
     function getScenarioLinkHtml(scenarioTitle) {
       const scenario = scenarioMap[scenarioTitle];
       if (!scenario || !scenario.topicUrl) {
@@ -826,7 +842,6 @@
               </button>
             </div>
           `;
-
           const participantsHtml =
             matches.length === 0
               ? '<li>Нет</li>'
@@ -855,7 +870,12 @@
         })
         .join('');
 
+      const loadingNote = linksLoaded
+        ? ''
+        : '<p style="margin-bottom:8px;color:#666;">Loading topic links from Google Sheets...</p>';
+
       return `
+        ${loadingNote}
         <div class="table-wrap">
           <table>
             <thead>
@@ -984,22 +1004,41 @@
         linkButtons.forEach(btn => {
           btn.addEventListener('click', () => {
             const id = Number(btn.getAttribute('data-scenario-id'));
-            const currentUrl = scenarioLinks[id] || '';
+            const scenario = scenarios.find(s => s.id === id);
+            const currentUrl = (scenario && scenario.topicUrl) || '';
 
             const newUrl = window.prompt('Вставьте ссылку на опубликованную тему', currentUrl);
             if (!newUrl) {
               return;
             }
 
-            scenarioLinks[id] = newUrl;
-            localStorage.setItem('qaScenarioLinks', JSON.stringify(scenarioLinks));
+            const body = {
+              scenarioId: id,
+              topicUrl: newUrl,
+              scenarioTitle: scenario ? scenario.title : ''
+            };
 
-            const scenario = scenarios.find(s => s.id === id);
-            if (scenario) {
-              scenario.topicUrl = newUrl;
-            }
-
-            renderActiveTab();
+            fetch(SCRIPT_BASE_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(body)
+            })
+              .then(r => r.json())
+              .then(resp => {
+                if (!resp || !resp.ok) {
+                  alert('Не удалось сохранить ссылку. Попробуйте ещё раз или проверьте Apps Script.');
+                  return;
+                }
+                scenarioLinks[String(id)] = newUrl;
+                if (scenario) {
+                  scenario.topicUrl = newUrl;
+                }
+                renderActiveTab();
+              })
+              .catch(err => {
+                console.error('Failed to save topic url', err);
+                alert('Ошибка при сохранении ссылки. Подробности — в консоли разработчика.');
+              });
           });
         });
 
@@ -1028,7 +1067,9 @@
       });
     });
 
+    // Первый рендер (без ссылок, чтобы был интерфейс), параллельно тянем данные
     renderActiveTab();
+    loadScenarioLinks();
   </script>
 </body>
 </html>
