@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -289,7 +289,7 @@
   </header>
 
   <nav class="tabs" role="tablist">
-    <button class="tab-btn active" data-tab="by-days">BY DAY</button>
+    <button class="tab-btn active" data-tab="by-days">By Day</button>
     <button class="tab-btn" data-tab="by-scenarios">By Scenarios</button>
     <button class="tab-btn" data-tab="my-schedule">My Schedule</button>
     <button class="tab-btn" data-tab="stats">Statistics</button>
@@ -299,7 +299,7 @@
   <main id="tab-content"></main>
 
   <script>
-    // Сценарии: добавлено поле topicUrl, которое будет заполняться из localStorage
+    // Scenarios: topicUrl will be filled from localStorage
     const scenarios = [
       { id: 1, title: 'Kaggle - Tesseract OCR for Simple Text CAPTCHAs', gid: '2047717572', topicUrl: '' },
       { id: 2, title: 'Reddit - Which CAPTCHA solving service is best', gid: '226647333', topicUrl: '' },
@@ -706,7 +706,47 @@
     ];
 
     // =========================
-    // Локальное хранилище ссылок на топики
+    // Dates instead of Day 2, Day 3, ...
+    // Day 2 = 1 December 2025
+    // =========================
+
+    const baseDateForDay2 = new Date(2025, 11, 1); // month 11 = December
+
+    function getDateForDay(dayNumber) {
+      if (dayNumber === 1) return null; // Day 1 has no calendar date label
+      const d = new Date(baseDateForDay2);
+      d.setDate(d.getDate() + (dayNumber - 2));
+      return d;
+    }
+
+    function formatEnDayMonth(date) {
+      return date.toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'long'
+      });
+    }
+
+    // Full label for buttons: "Day 2 — 1 December"
+    function getDayLabel(dayObj) {
+      if (dayObj.day === 1) {
+        return 'Day 1';
+      }
+      const date = getDateForDay(dayObj.day);
+      const formatted = formatEnDayMonth(date);
+      return `Day ${dayObj.day} — ${formatted}`;
+    }
+
+    // Short label for tables and brackets: "1 December"
+    function getDayDateLabel(dayObj) {
+      if (dayObj.day === 1) {
+        return 'Day 1';
+      }
+      const date = getDateForDay(dayObj.day);
+      return formatEnDayMonth(date);
+    }
+
+    // =========================
+    // Local storage for topic links
     // =========================
 
     let scenarioLinks = {};
@@ -724,7 +764,7 @@
         scenarioLinks = {};
       }
 
-      // Применяем ссылки к сценариям
+      // Apply links to scenarios
       scenarios.forEach(s => {
         const key = String(s.id);
         if (scenarioLinks[key]) {
@@ -741,7 +781,7 @@
       }
     }
 
-    // Быстрый доступ по названию
+    // Quick access by title
     const scenarioMap = {};
     scenarios.forEach(s => {
       scenarioMap[s.title] = s;
@@ -756,13 +796,13 @@
     }
 
     // =========================
-    // Рендер вкладок
+    // Tab rendering
     // =========================
 
     function renderByDaysTab(selectedDayIdx = 0) {
       const dayTabs = days
         .map((d, i) =>
-          `<button class="day-btn${i === selectedDayIdx ? ' active' : ''}" data-day-idx="${i}">Day ${d.day}</button>`
+          `<button class="day-btn${i === selectedDayIdx ? ' active' : ''}" data-day-idx="${i}">${getDayLabel(d)}</button>`
         )
         .join('');
 
@@ -854,13 +894,14 @@
 
           const participantsHtml =
             matches.length === 0
-              ? '<li>Нет</li>'
+              ? '<li>None</li>'
               : matches
                   .map(m => {
+                    const dayLabel = getDayDateLabel(days[m.di]);
                     if (m.p.name !== '—' && m.p.link) {
-                      return `<li><a href="${m.p.link}" target="_blank" rel="noopener noreferrer">${m.p.name}</a> (Day ${days[m.di].day}, ${m.p.role})</li>`;
+                      return `<li><a href="${m.p.link}" target="_blank" rel="noopener noreferrer">${m.p.name}</a> (${dayLabel}, ${m.p.role})</li>`;
                     }
-                    return `<li>${m.p.name} (Day ${days[m.di].day}, ${m.p.role})</li>`;
+                    return `<li>${m.p.name} (${dayLabel}, ${m.p.role})</li>`;
                   })
                   .join('');
 
@@ -886,7 +927,7 @@
             <thead>
               <tr>
                 <th>Scenario</th>
-                <th>Participants (Day, Role)</th>
+                <th>Participants (Date, Role)</th>
               </tr>
             </thead>
             <tbody>${scenarioRows}</tbody>
@@ -901,7 +942,7 @@
       let content = `
         <div style="margin-bottom:16px;">
           <label>
-            Введите ваше имя:
+            Enter your name:
             <select style="margin-left:8px;" id="myname-select">
               <option value=""></option>
               ${employees
@@ -925,7 +966,7 @@
       if (participations.length === 0) {
         return (
           content +
-          `<div>Нет записей для <b>${myName}</b></div>`
+          `<div>No records for <b>${myName}</b></div>`
         );
       }
 
@@ -934,7 +975,7 @@
           const scenarioCell = part.p.scenario ? getScenarioLinkHtml(part.p.scenario) : '—';
           return `
             <tr>
-              <td>Day ${days[part.di].day}</td>
+              <td>${getDayDateLabel(days[part.di])}</td>
               <td>${scenarioCell}</td>
               <td>${part.p.role}</td>
             </tr>
@@ -947,7 +988,7 @@
           <table>
             <thead>
               <tr>
-                <th>Day</th>
+                <th>Date</th>
                 <th>Scenario</th>
                 <th>Role</th>
               </tr>
@@ -967,7 +1008,7 @@
           <p><strong>After placing your comment</strong> on the platform (Reddit, Kaggle, StackOverflow, etc.), you need to:</p>
           <ol>
             <li>Click the button below to open the Report Sheet</li>
-            <li>Paste the link to your placed comment in the appropriate column</li>
+            <li>Paste the link to your posted comment into the appropriate column</li>
             <li>This helps track all comments and ensures quality control</li>
           </ol>
           <a
@@ -1012,7 +1053,7 @@
             const scenario = scenarios.find(s => s.id === id);
             const currentUrl = (scenario && scenario.topicUrl) || '';
 
-            const newUrl = window.prompt('Вставьте ссылку на опубликованную тему', currentUrl);
+            const newUrl = window.prompt('Paste the link to the published topic', currentUrl);
             if (!newUrl) {
               return;
             }
