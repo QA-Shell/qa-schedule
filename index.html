@@ -290,551 +290,223 @@
 
   <nav class="tabs" role="tablist">
     <button class="tab-btn active" data-tab="by-days">By Day</button>
-    <button class="tab-btn" data-tab="by-scenarios">By Scenarios</button>
-    <button class="tab-btn" data-tab="my-schedule">My Schedule</button>
+    <button class="tab-btn" data-tab="by-employees">By Employee</button>
+    <button class="tab-btn" data-tab="by-platforms">By Platform</button>
     <button class="tab-btn" data-tab="stats">Statistics</button>
-    <button class="tab-btn" data-tab="report">📋 Report</button>
   </nav>
 
   <main id="tab-content"></main>
 
   <script>
-    // Scenarios: topicUrl will be filled from localStorage
-    const scenarios = [
-      { id: 1, title: 'Kaggle - Tesseract OCR for Simple Text CAPTCHAs', gid: '2047717572', topicUrl: '' },
-      { id: 2, title: 'Reddit - Which CAPTCHA solving service is best', gid: '226647333', topicUrl: '' },
-      { id: 3, title: 'Quora - Browser Automation Platforms', gid: '1608620004', topicUrl: '' },
-      { id: 4, title: 'StackOverflow - How to solve CAPTCHA using Python', gid: '125415752', topicUrl: '' },
-      { id: 5, title: 'StackExchange - How to Bypass Captchas in Chrome', gid: '1237946684', topicUrl: '' }
-    ];
+    // Schedule structure: Employee -> [(date, gid, range), ...]
+    const scheduleData = {
+      "Divine": [
+        { date: "10.12", gid: "1745650365", range: "A1:A2" },
+        { date: "17.12", gid: "1480305097", range: "A15" },
+        { date: "16.12", gid: "641959591", range: "A12" }
+      ],
+      "Emeka": [
+        { date: "10.12", gid: "1745650365", range: "A4" },
+        { date: "10.12", gid: "1332544562", range: "A1:A2" },
+        { date: "17.12", gid: "641959591", range: "A13" }
+      ],
+      "usmirnova": [
+        { date: "11.12", gid: "1745650365", range: "A6" },
+        { date: "10.12", gid: "1332544562", range: "A4" },
+        { date: "10.12", gid: "66643352", range: "A1:A2" }
+      ],
+      "imnatalie": [
+        { date: "12.12", gid: "1745650365", range: "A8" },
+        { date: "11.12", gid: "1332544562", range: "A6" },
+        { date: "10.12", gid: "66643352", range: "A4" },
+        { date: "10.12", gid: "686295720", range: "A1:A3" }
+      ],
+      "Roman": [
+        { date: "15.12", gid: "1745650365", range: "A10" },
+        { date: "11.12", gid: "66643352", range: "A6" },
+        { date: "10.12", gid: "686295720", range: "A5" },
+        { date: "10.12", gid: "591510053", range: "A1:A3" }
+      ],
+      "Viktor": [
+        { date: "16.12", gid: "1745650365", range: "A12" },
+        { date: "15.12", gid: "1332544562", range: "A8" },
+        { date: "12.12", gid: "66643352", range: "A8" },
+        { date: "11.12", gid: "686295720", range: "A7" },
+        { date: "10.12", gid: "591510053", range: "A5" },
+        { date: "10.12", gid: "1480305097", range: "A1:A3" }
+      ],
+      "Nikolay": [
+        { date: "17.12", gid: "1745650365", range: "A14" },
+        { date: "16.12", gid: "1332544562", range: "A10" },
+        { date: "15.12", gid: "66643352", range: "A10" },
+        { date: "12.12", gid: "686295720", range: "A9" },
+        { date: "11.12", gid: "591510053", range: "A7" },
+        { date: "10.12", gid: "1480305097", range: "A5" },
+        { date: "10.12", gid: "641959591", range: "A1:A2" }
+      ],
+      "Asia": [
+        { date: "16.12", gid: "66643352", range: "A12" },
+        { date: "15.12", gid: "686295720", range: "A11" },
+        { date: "12.12", gid: "591510053", range: "A9" },
+        { date: "11.12", gid: "1480305097", range: "A7" },
+        { date: "10.12", gid: "641959591", range: "A4" }
+      ],
+      "Dariya": [
+        { date: "17.12", gid: "66643352", range: "A14" },
+        { date: "16.12", gid: "686295720", range: "A13" },
+        { date: "15.12", gid: "591510053", range: "A11" },
+        { date: "12.12", gid: "1480305097", range: "A9" },
+        { date: "11.12", gid: "641959591", range: "A6" }
+      ],
+      "Julia": [
+        { date: "17.12", gid: "686295720", range: "A15" },
+        { date: "16.12", gid: "591510053", range: "A13" },
+        { date: "15.12", gid: "1480305097", range: "A11" },
+        { date: "12.12", gid: "641959591", range: "A8" }
+      ],
+      "Polina": [
+        { date: "17.12", gid: "591510053", range: "A15" },
+        { date: "16.12", gid: "1480305097", range: "A13" },
+        { date: "15.12", gid: "641959591", range: "A10" }
+      ]
+    };
 
-    const employees = [
-      "Divine",
-      "Emeka",
-      "usmirnova",
-      "imnatalie",
-      "Roman",
-      "Viktor",
-      "Nikolay",
-      "Asia",
-      "Dariya",
-      "Julia",
-      "Polina"
-    ];
+    // Platform mapping
+    const platforms = {
+      "1745650365": "Reddit",
+      "1332544562": "HackForums",
+      "66643352": "AffLift",
+      "686295720": "ServerFault",
+      "591510053": "Expert-Exchange",
+      "1480305097": "CodeProject",
+      "641959591": "StackOverflow"
+    };
 
-    const stats = [
-      { name: "Divine", total: 3, creates: 1, comments: 2 },
-      { name: "Emeka", total: 3, creates: 1, comments: 2 },
-      { name: "usmirnova", total: 4, creates: 1, comments: 3 },
-      { name: "imnatalie", total: 3, creates: 1, comments: 2 },
-      { name: "Roman", total: 4, creates: 1, comments: 3 },
-      { name: "Viktor", total: 4, creates: 0, comments: 4 },
-      { name: "Nikolay", total: 5, creates: 0, comments: 5 },
-      { name: "Asia", total: 4, creates: 0, comments: 4 },
-      { name: "Dariya", total: 3, creates: 0, comments: 3 },
-      { name: "Julia", total: 2, creates: 0, comments: 2 },
-      { name: "Polina", total: 2, creates: 0, comments: 2 }
-    ];
+    const dates = ["10.12", "11.12", "12.12", "15.12", "16.12", "17.12"];
+    const employees = Object.keys(scheduleData).sort();
 
-    const days = [
-      {
-        day: 1,
-        title: "Day 1 (10 participations)",
-        participants: [
-          {
-            name: "Divine",
-            scenario: "Kaggle - Tesseract OCR for Simple Text CAPTCHAs",
-            role: "Creator",
-            link: "https://docs.google.com/spreadsheets/d/1sCSuhm5PrfkwoCjg2TyZRISkgpZVhGJL0UiDnn5OC24/edit?gid=2047717572#gid=2047717572&range=A1:A2"
-          },
-          {
-            name: "Emeka",
-            scenario: "Reddit - Which CAPTCHA solving service is best",
-            role: "Creator",
-            link: "https://docs.google.com/spreadsheets/d/1sCSuhm5PrfkwoCjg2TyZRISkgpZVhGJL0UiDnn5OC24/edit?gid=226647333#gid=226647333&range=A1:A2"
-          },
-          {
-            name: "usmirnova",
-            scenario: "Quora - Browser Automation Platforms",
-            role: "Creator",
-            link: "https://docs.google.com/spreadsheets/d/1sCSuhm5PrfkwoCjg2TyZRISkgpZVhGJL0UiDnn5OC24/edit?gid=1608620004#gid=1608620004&range=A1:A2"
-          },
-          {
-            name: "imnatalie",
-            scenario: "StackOverflow - How to solve CAPTCHA using Python",
-            role: "Creator",
-            link: "https://docs.google.com/spreadsheets/d/1sCSuhm5PrfkwoCjg2TyZRISkgpZVhGJL0UiDnn5OC24/edit?gid=125415752#gid=125415752&range=A1:A2"
-          },
-          {
-            name: "Roman",
-            scenario: "StackExchange - How to Bypass Captchas in Chrome",
-            role: "Creator",
-            link: "https://docs.google.com/spreadsheets/d/1sCSuhm5PrfkwoCjg2TyZRISkgpZVhGJL0UiDnn5OC24/edit?gid=1237946684#gid=1237946684&range=A1:A2"
-          },
-          {
-            name: "Emeka",
-            scenario: "Kaggle - Tesseract OCR for Simple Text CAPTCHAs",
-            role: "Commentator",
-            link: "https://docs.google.com/spreadsheets/d/1sCSuhm5PrfkwoCjg2TyZRISkgpZVhGJL0UiDnn5OC24/edit?gid=2047717572#gid=2047717572&range=A4"
-          },
-          {
-            name: "usmirnova",
-            scenario: "Reddit - Which CAPTCHA solving service is best",
-            role: "Commentator",
-            link: "https://docs.google.com/spreadsheets/d/1sCSuhm5PrfkwoCjg2TyZRISkgpZVhGJL0UiDnn5OC24/edit?gid=226647333#gid=226647333&range=A4"
-          },
-          {
-            name: "imnatalie",
-            scenario: "Quora - Browser Automation Platforms",
-            role: "Commentator",
-            link: "https://docs.google.com/spreadsheets/d/1sCSuhm5PrfkwoCjg2TyZRISkgpZVhGJL0UiDnn5OC24/edit?gid=1608620004#gid=1608620004&range=A3"
-          },
-          {
-            name: "Roman",
-            scenario: "StackOverflow - How to solve CAPTCHA using Python",
-            role: "Commentator",
-            link: "https://docs.google.com/spreadsheets/d/1sCSuhm5PrfkwoCjg2TyZRISkgpZVhGJL0UiDnn5OC24/edit?gid=125415752#gid=125415752&range=A4"
-          },
-          {
-            name: "Viktor",
-            scenario: "StackExchange - How to Bypass Captchas in Chrome",
-            role: "Commentator",
-            link: "https://docs.google.com/spreadsheets/d/1sCSuhm5PrfkwoCjg2TyZRISkgpZVhGJL0UiDnn5OC24/edit?gid=1237946684#gid=1237946684&range=A4"
-          }
-        ]
-      },
-      {
-        day: 2,
-        title: "Day 2 (10 participations)",
-        participants: [
-          {
-            name: "usmirnova",
-            scenario: "Kaggle - Tesseract OCR for Simple Text CAPTCHAs",
-            role: "Commentator",
-            link: "https://docs.google.com/spreadsheets/d/1sCSuhm5PrfkwoCjg2TyZRISkgpZVhGJL0UiDnn5OC24/edit?gid=2047717572#gid=2047717572&range=A6"
-          },
-          {
-            name: "imnatalie",
-            scenario: "Reddit - Which CAPTCHA solving service is best",
-            role: "Commentator",
-            link: "https://docs.google.com/spreadsheets/d/1sCSuhm5PrfkwoCjg2TyZRISkgpZVhGJL0UiDnn5OC24/edit?gid=226647333#gid=226647333&range=A6"
-          },
-          {
-            name: "Roman",
-            scenario: "Quora - Browser Automation Platforms",
-            role: "Commentator",
-            link: "https://docs.google.com/spreadsheets/d/1sCSuhm5PrfkwoCjg2TyZRISkgpZVhGJL0UiDnn5OC24/edit?gid=1608620004#gid=1608620004&range=A5"
-          },
-          {
-            name: "Viktor",
-            scenario: "StackOverflow - How to solve CAPTCHA using Python",
-            role: "Commentator",
-            link: "https://docs.google.com/spreadsheets/d/1sCSuhm5PrfkwoCjg2TyZRISkgpZVhGJL0UiDnn5OC24/edit?gid=125415752#gid=125415752&range=A6"
-          },
-          {
-            name: "Nikolay",
-            scenario: "StackExchange - How to Bypass Captchas in Chrome",
-            role: "Commentator",
-            link: "https://docs.google.com/spreadsheets/d/1sCSuhm5PrfkwoCjg2TyZRISkgpZVhGJL0UiDnn5OC24/edit?gid=1237946684#gid=1237946684&range=A6"
-          },
-          {
-            name: "imnatalie",
-            scenario: "Kaggle - Tesseract OCR for Simple Text CAPTCHAs",
-            role: "Commentator",
-            link: "https://docs.google.com/spreadsheets/d/1sCSuhm5PrfkwoCjg2TyZRISkgpZVhGJL0UiDnn5OC24/edit?gid=2047717572#gid=2047717572&range=A8"
-          },
-          {
-            name: "Roman",
-            scenario: "Reddit - Which CAPTCHA solving service is best",
-            role: "Commentator",
-            link: "https://docs.google.com/spreadsheets/d/1sCSuhm5PrfkwoCjg2TyZRISkgpZVhGJL0UiDnn5OC24/edit?gid=226647333#gid=226647333&range=A8"
-          },
-          {
-            name: "Viktor",
-            scenario: "Quora - Browser Automation Platforms",
-            role: "Commentator",
-            link: "https://docs.google.com/spreadsheets/d/1sCSuhm5PrfkwoCjg2TyZRISkgpZVhGJL0UiDnn5OC24/edit?gid=1608620004#gid=1608620004&range=A7"
-          },
-          {
-            name: "Nikolay",
-            scenario: "StackOverflow - How to solve CAPTCHA using Python",
-            role: "Commentator",
-            link: "https://docs.google.com/spreadsheets/d/1sCSuhm5PrfkwoCjg2TyZRISkgpZVhGJL0UiDnn5OC24/edit?gid=125415752#gid=125415752&range=A8"
-          },
-          {
-            name: "Asia",
-            scenario: "StackExchange - How to Bypass Captchas in Chrome",
-            role: "Commentator",
-            link: "https://docs.google.com/spreadsheets/d/1sCSuhm5PrfkwoCjg2TyZRISkgpZVhGJL0UiDnn5OC24/edit?gid=1237946684#gid=1237946684&range=A8"
-          }
-        ]
-      },
-      {
-        day: 3,
-        title: "Day 3 (10 participations)",
-        participants: [
-          {
-            name: "Roman",
-            scenario: "Kaggle - Tesseract OCR for Simple Text CAPTCHAs",
-            role: "Commentator",
-            link: "https://docs.google.com/spreadsheets/d/1sCSuhm5PrfkwoCjg2TyZRISkgpZVhGJL0UiDnn5OC24/edit?gid=2047717572#gid=2047717572&range=A10"
-          },
-          {
-            name: "Viktor",
-            scenario: "Reddit - Which CAPTCHA solving service is best",
-            role: "Commentator",
-            link: "https://docs.google.com/spreadsheets/d/1sCSuhm5PrfkwoCjg2TyZRISkgpZVhGJL0UiDnn5OC24/edit?gid=226647333#gid=226647333&range=A10"
-          },
-          {
-            name: "Nikolay",
-            scenario: "Quora - Browser Automation Platforms",
-            role: "Commentator",
-            link: "https://docs.google.com/spreadsheets/d/1sCSuhm5PrfkwoCjg2TyZRISkgpZVhGJL0UiDnn5OC24/edit?gid=1608620004#gid=1608620004&range=A9"
-          },
-          {
-            name: "Asia",
-            scenario: "StackOverflow - How to solve CAPTCHA using Python",
-            role: "Commentator",
-            link: "https://docs.google.com/spreadsheets/d/1sCSuhm5PrfkwoCjg2TyZRISkgpZVhGJL0UiDnn5OC24/edit?gid=125415752#gid=125415752&range=A10"
-          },
-          {
-            name: "Dariya",
-            scenario: "StackExchange - How to Bypass Captchas in Chrome",
-            role: "Commentator",
-            link: "https://docs.google.com/spreadsheets/d/1sCSuhm5PrfkwoCjg2TyZRISkgpZVhGJL0UiDnn5OC24/edit?gid=1237946684#gid=1237946684&range=A10"
-          },
-          {
-            name: "Viktor",
-            scenario: "Kaggle - Tesseract OCR for Simple Text CAPTCHAs",
-            role: "Commentator",
-            link: "https://docs.google.com/spreadsheets/d/1sCSuhm5PrfkwoCjg2TyZRISkgpZVhGJL0UiDnn5OC24/edit?gid=2047717572#gid=2047717572&range=A12"
-          },
-          {
-            name: "Nikolay",
-            scenario: "Reddit - Which CAPTCHA solving service is best",
-            role: "Commentator",
-            link: "https://docs.google.com/spreadsheets/d/1sCSuhm5PrfkwoCjg2TyZRISkgpZVhGJL0UiDnn5OC24/edit?gid=226647333#gid=226647333&range=A12"
-          },
-          {
-            name: "Asia",
-            scenario: "Quora - Browser Automation Platforms",
-            role: "Commentator",
-            link: "https://docs.google.com/spreadsheets/d/1sCSuhm5PrfkwoCjg2TyZRISkgpZVhGJL0UiDnn5OC24/edit?gid=1608620004#gid=1608620004&range=A11"
-          },
-          {
-            name: "Dariya",
-            scenario: "StackOverflow - How to solve CAPTCHA using Python",
-            role: "Commentator",
-            link: "https://docs.google.com/spreadsheets/d/1sCSuhm5PrfkwoCjg2TyZRISkgpZVhGJL0UiDnn5OC24/edit?gid=125415752#gid=125415752&range=A12"
-          },
-          {
-            name: "Julia",
-            scenario: "StackExchange - How to Bypass Captchas in Chrome",
-            role: "Commentator",
-            link: "https://docs.google.com/spreadsheets/d/1sCSuhm5PrfkwoCjg2TyZRISkgpZVhGJL0UiDnn5OC24/edit?gid=1237946684#gid=1237946684&range=A12"
-          }
-        ]
-      },
-      {
-        day: 4,
-        title: "Day 4 (10 participations)",
-        participants: [
-          {
-            name: "Nikolay",
-            scenario: "Kaggle - Tesseract OCR for Simple Text CAPTCHAs",
-            role: "Commentator",
-            link: "https://docs.google.com/spreadsheets/d/1sCSuhm5PrfkwoCjg2TyZRISkgpZVhGJL0UiDnn5OC24/edit?gid=2047717572#gid=2047717572&range=A14"
-          },
-          {
-            name: "Asia",
-            scenario: "Reddit - Which CAPTCHA solving service is best",
-            role: "Commentator",
-            link: "https://docs.google.com/spreadsheets/d/1sCSuhm5PrfkwoCjg2TyZRISkgpZVhGJL0UiDnn5OC24/edit?gid=226647333#gid=226647333&range=A14"
-          },
-          {
-            name: "Dariya",
-            scenario: "Quora - Browser Automation Platforms",
-            role: "Commentator",
-            link: "https://docs.google.com/spreadsheets/d/1sCSuhm5PrfkwoCjg2TyZRISkgpZVhGJL0UiDnn5OC24/edit?gid=1608620004#gid=1608620004&range=A13"
-          },
-          {
-            name: "Julia",
-            scenario: "StackOverflow - How to solve CAPTCHA using Python",
-            role: "Commentator",
-            link: "https://docs.google.com/spreadsheets/d/1sCSuhm5PrfkwoCjg2TyZRISkgpZVhGJL0UiDnn5OC24/edit?gid=125415752#gid=125415752&range=A14"
-          },
-          {
-            name: "Polina",
-            scenario: "StackExchange - How to Bypass Captchas in Chrome",
-            role: "Commentator",
-            link: "https://docs.google.com/spreadsheets/d/1sCSuhm5PrfkwoCjg2TyZRISkgpZVhGJL0UiDnn5OC24/edit?gid=1237946684#gid=1237946684&range=A14"
-          },
-          {
-            name: "Asia",
-            scenario: "Kaggle - Tesseract OCR for Simple Text CAPTCHAs",
-            role: "Commentator",
-            link: "https://docs.google.com/spreadsheets/d/1sCSuhm5PrfkwoCjg2TyZRISkgpZVhGJL0UiDnn5OC24/edit?gid=2047717572#gid=2047717572&range=A16"
-          },
-          {
-            name: "—",
-            scenario: "Reddit - Which CAPTCHA solving service is best",
-            role: "—",
-            link: ""
-          },
-          {
-            name: "—",
-            scenario: "Quora - Browser Automation Platforms",
-            role: "—",
-            link: ""
-          },
-          {
-            name: "Polina",
-            scenario: "StackOverflow - How to solve CAPTCHA using Python",
-            role: "Commentator",
-            link: "https://docs.google.com/spreadsheets/d/1sCSuhm5PrfkwoCjg2TyZRISkgpZVhGJL0UiDnn5OC24/edit?gid=125415752#gid=125415752&range=A16"
-          },
-          {
-            name: "Divine",
-            scenario: "StackExchange - How to Bypass Captchas in Chrome",
-            role: "Commentator",
-            link: "https://docs.google.com/spreadsheets/d/1sCSuhm5PrfkwoCjg2TyZRISkgpZVhGJL0UiDnn5OC24/edit?gid=1237946684#gid=1237946684&range=A16"
-          }
-        ]
-      },
-      {
-        day: 5,
-        title: "Day 5 (5 participations)",
-        participants: [
-          {
-            name: "—",
-            scenario: "Kaggle - Tesseract OCR for Simple Text CAPTCHAs",
-            role: "—",
-            link: ""
-          },
-          {
-            name: "—",
-            scenario: "Reddit - Which CAPTCHA solving service is best",
-            role: "—",
-            link: ""
-          },
-          {
-            name: "—",
-            scenario: "Quora - Browser Automation Platforms",
-            role: "—",
-            link: ""
-          },
-          {
-            name: "Divine",
-            scenario: "StackOverflow - How to solve CAPTCHA using Python",
-            role: "Commentator",
-            link: "https://docs.google.com/spreadsheets/d/1sCSuhm5PrfkwoCjg2TyZRISkgpZVhGJL0UiDnn5OC24/edit?gid=125415752#gid=125415752&range=A18"
-          },
-          {
-            name: "Emeka",
-            scenario: "StackExchange - How to Bypass Captchas in Chrome",
-            role: "Commentator",
-            link: "https://docs.google.com/spreadsheets/d/1sCSuhm5PrfkwoCjg2TyZRISkgpZVhGJL0UiDnn5OC24/edit?gid=1237946684#gid=1237946684&range=A18"
-          },
-          {
-            name: "—",
-            scenario: "Kaggle - Tesseract OCR for Simple Text CAPTCHAs",
-            role: "—",
-            link: ""
-          },
-          {
-            name: "—",
-            scenario: "Reddit - Which CAPTCHA solving service is best",
-            role: "—",
-            link: ""
-          },
-          {
-            name: "—",
-            scenario: "Quora - Browser Automation Platforms",
-            role: "—",
-            link: ""
-          },
-          {
-            name: "Emeka",
-            scenario: "StackOverflow - How to solve CAPTCHA using Python",
-            role: "Commentator",
-            link: "https://docs.google.com/spreadsheets/d/1sCSuhm5PrfkwoCjg2TyZRISkgpZVhGJL0UiDnn5OC24/edit?gid=125415752#gid=125415752&range=A20"
-          },
-          {
-            name: "usmirnova",
-            scenario: "StackExchange - How to Bypass Captchas in Chrome",
-            role: "Commentator",
-            link: "https://docs.google.com/spreadsheets/d/1sCSuhm5PrfkwoCjg2TyZRISkgpZVhGJL0UiDnn5OC24/edit?gid=1237946684#gid=1237946684&range=A20"
-          }
-        ]
-      },
-      {
-        day: 6,
-        title: "Day 6 (2 participations)",
-        participants: [
-          {
-            name: "—",
-            scenario: "Kaggle - Tesseract OCR for Simple Text CAPTCHAs",
-            role: "—",
-            link: ""
-          },
-          {
-            name: "—",
-            scenario: "Reddit - Which CAPTCHA solving service is best",
-            role: "—",
-            link: ""
-          },
-          {
-            name: "—",
-            scenario: "Quora - Browser Automation Platforms",
-            role: "—",
-            link: ""
-          },
-          {
-            name: "usmirnova",
-            scenario: "StackOverflow - How to solve CAPTCHA using Python",
-            role: "Commentator",
-            link: "https://docs.google.com/spreadsheets/d/1sCSuhm5PrfkwoCjg2TyZRISkgpZVhGJL0UiDnn5OC24/edit?gid=125415752#gid=125415752&range=A22"
-          },
-          {
-            name: "imnatalie",
-            scenario: "StackExchange - How to Bypass Captchas in Chrome",
-            role: "Commentator",
-            link: "https://docs.google.com/spreadsheets/d/1sCSuhm5PrfkwoCjg2TyZRISkgpZVhGJL0UiDnn5OC24/edit?gid=1237946684#gid=1237946684&range=A22"
-          }
-        ]
-      }
-    ];
+    let activeTab = 'by-days';
+    let activeDayIdx = 0;
 
-    // =========================
-    // Dates instead of Day 2, Day 3, ...
-    // Day 2 = 1 December 2025
-    // =========================
-
-    const baseDateForDay2 = new Date(2025, 11, 1); // month 11 = December
-
-    function getDateForDay(dayNumber) {
-      if (dayNumber === 1) return null; // Day 1 has no calendar date label
-      const d = new Date(baseDateForDay2);
-      d.setDate(d.getDate() + (dayNumber - 2));
-      return d;
+    function buildUrl(gid, range) {
+      return `https://docs.google.com/spreadsheets/d/1sCSuhm5PrfkwoCjg2TyZRISkgpZVhGJL0UiDnn5OC24/edit?gid=${gid}#gid=${gid}&range=${range}`;
     }
 
-    function formatEnDayMonth(date) {
-      return date.toLocaleDateString('en-GB', {
-        day: 'numeric',
-        month: 'long'
-      });
-    }
+    function renderByDaysTab() {
+      const dayBtns = dates.map((d, i) =>
+        `<button class="day-btn${i === activeDayIdx ? ' active' : ''}" data-day-idx="${i}">${d}</button>`
+      ).join('');
 
-    // Full label for buttons: "Day 2 — 1 December"
-    function getDayLabel(dayObj) {
-      if (dayObj.day === 1) {
-        return 'Day 1';
-      }
-      const date = getDateForDay(dayObj.day);
-      const formatted = formatEnDayMonth(date);
-      return `Day ${dayObj.day} — ${formatted}`;
-    }
-
-    // Short label for tables and brackets: "1 December"
-    function getDayDateLabel(dayObj) {
-      if (dayObj.day === 1) {
-        return 'Day 1';
-      }
-      const date = getDateForDay(dayObj.day);
-      return formatEnDayMonth(date);
-    }
-
-    // =========================
-    // Local storage for topic links
-    // =========================
-
-    let scenarioLinks = {};
-    (function initScenarioLinksFromStorage() {
-      try {
-        const raw = localStorage.getItem('qaScenarioLinks');
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          if (parsed && typeof parsed === 'object') {
-            scenarioLinks = parsed;
-          }
+      const rows = [];
+      
+      for (const [emp, entries] of Object.entries(scheduleData)) {
+        const matchingEntry = entries.find(e => e.date === dates[activeDayIdx]);
+        if (matchingEntry) {
+          const url = buildUrl(matchingEntry.gid, matchingEntry.range);
+          const platform = platforms[matchingEntry.gid];
+          rows.push(`
+            <tr>
+              <td><a href="${url}" target="_blank">${emp}</a></td>
+              <td>${platform}</td>
+              <td>${dates[activeDayIdx]}</td>
+            </tr>
+          `);
         }
-      } catch (e) {
-        console.error('Failed to read qaScenarioLinks from localStorage', e);
-        scenarioLinks = {};
       }
 
-      // Apply links to scenarios
-      scenarios.forEach(s => {
-        const key = String(s.id);
-        if (scenarioLinks[key]) {
-          s.topicUrl = scenarioLinks[key];
-        }
-      });
-    })();
-
-    function saveScenarioLinksToStorage() {
-      try {
-        localStorage.setItem('qaScenarioLinks', JSON.stringify(scenarioLinks));
-      } catch (e) {
-        console.error('Failed to save qaScenarioLinks to localStorage', e);
-      }
-    }
-
-    // Quick access by title
-    const scenarioMap = {};
-    scenarios.forEach(s => {
-      scenarioMap[s.title] = s;
-    });
-
-    function getScenarioLinkHtml(scenarioTitle) {
-      const scenario = scenarioMap[scenarioTitle];
-      if (!scenario || !scenario.topicUrl) {
-        return scenarioTitle || '—';
-      }
-      return `<a href="${scenario.topicUrl}" target="_blank" rel="noopener noreferrer">${scenarioTitle}</a>`;
-    }
-
-    // =========================
-    // Tab rendering
-    // =========================
-
-    function renderByDaysTab(selectedDayIdx = 0) {
-      const dayTabs = days
-        .map((d, i) =>
-          `<button class="day-btn${i === selectedDayIdx ? ' active' : ''}" data-day-idx="${i}">${getDayLabel(d)}</button>`
-        )
-        .join('');
-
-      const participants = days[selectedDayIdx].participants;
-
-      const rows = participants
-        .map(p => {
-          const employeeCell =
-            p.name !== '—' && p.link
-              ? `<a href="${p.link}" target="_blank" rel="noopener noreferrer">${p.name}</a>`
-              : (p.name || '—');
-
-          const scenarioCell = p.scenario ? getScenarioLinkHtml(p.scenario) : '—';
-          const roleCell = p.role || '—';
-
-          return `<tr>
-            <td>${employeeCell}</td>
-            <td>${scenarioCell}</td>
-            <td>${roleCell}</td>
-          </tr>`;
-        })
-        .join('');
-
-      return `
-        <div class="day-tabs">${dayTabs}</div>
+      let html = `
+        <div class="day-tabs">${dayBtns}</div>
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
                 <th>Employee</th>
-                <th>Scenario</th>
-                <th>Role</th>
+                <th>Platform</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>${rows.join('')}</tbody>
+          </table>
+        </div>
+      `;
+
+      document.getElementById('tab-content').innerHTML = html;
+      document.querySelectorAll('.day-btn').forEach((btn, i) => {
+        btn.addEventListener('click', () => {
+          activeDayIdx = i;
+          renderByDaysTab();
+        });
+      });
+    }
+
+    function renderByEmployeesTab() {
+      const rows = employees.map(emp => {
+        const entries = scheduleData[emp];
+        const links = entries.map(e => {
+          const url = buildUrl(e.gid, e.range);
+          const platform = platforms[e.gid];
+          return `<a href="${url}" target="_blank">${platform} (${e.date})</a>`;
+        }).join(', ');
+        return `
+          <tr>
+            <td>${emp}</td>
+            <td>${links}</td>
+            <td>${entries.length}</td>
+          </tr>
+        `;
+      }).join('');
+
+      document.getElementById('tab-content').innerHTML = `
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Employee</th>
+                <th>Assignments</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function renderByPlatformsTab() {
+      const platformMap = {};
+      for (const [emp, entries] of Object.entries(scheduleData)) {
+        for (const entry of entries) {
+          const platform = platforms[entry.gid];
+          if (!platformMap[platform]) {
+            platformMap[platform] = [];
+          }
+          platformMap[platform].push({ emp, entry });
+        }
+      }
+
+      const rows = Object.entries(platformMap).map(([platform, assignments]) => {
+        const links = assignments.map(a => {
+          const url = buildUrl(a.entry.gid, a.entry.range);
+          return `<a href="${url}" target="_blank">${a.emp} (${a.entry.date})</a>`;
+        }).join(', ');
+
+        return `
+          <tr>
+            <td>${platform}</td>
+            <td>${links}</td>
+            <td>${assignments.length}</td>
+          </tr>
+        `;
+      }).join('');
+
+      document.getElementById('tab-content').innerHTML = `
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Platform</th>
+                <th>Assigned To</th>
+                <th>Total</th>
               </tr>
             </thead>
             <tbody>${rows}</tbody>
@@ -844,26 +516,25 @@
     }
 
     function renderStatsTab() {
-      const rows = stats
-        .map(e => `
-          <tr>
-            <td>${e.name}</td>
-            <td>${e.total}</td>
-            <td>${e.creates}</td>
-            <td>${e.comments}</td>
-          </tr>
-        `)
-        .join('');
+      const stats = employees.map(emp => {
+        const entries = scheduleData[emp];
+        return { name: emp, total: entries.length };
+      }).sort((a, b) => b.total - a.total);
 
-      return `
+      const rows = stats.map(s => `
+        <tr>
+          <td>${s.name}</td>
+          <td>${s.total}</td>
+        </tr>
+      `).join('');
+
+      document.getElementById('tab-content').innerHTML = `
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
                 <th>Employee</th>
-                <th>Total</th>
-                <th>Creator</th>
-                <th>Comments</th>
+                <th>Assignments</th>
               </tr>
             </thead>
             <tbody>${rows}</tbody>
@@ -872,227 +543,28 @@
       `;
     }
 
-    function renderScenariosTab() {
-      const scenarioRows = scenarios
-        .map(s => {
-          let matches = days.flatMap((d, di) =>
-            d.participants.map((p, pi) => ({ p, di, pi, d }))
-          );
-          matches = matches.filter(x => x.p.scenario === s.title);
-
-          const titleHtml = s.topicUrl
-            ? `<a href="${s.topicUrl}" target="_blank" rel="noopener noreferrer">${s.title}</a>`
-            : s.title;
-
-          const actionHtml = `
-            <div style="margin-top:4px;">
-              <button class="set-topic-link-btn" data-scenario-id="${s.id}">
-                ${s.topicUrl ? 'Change link' : 'Set link'}
-              </button>
-            </div>
-          `;
-
-          const participantsHtml =
-            matches.length === 0
-              ? '<li>None</li>'
-              : matches
-                  .map(m => {
-                    const dayLabel = getDayDateLabel(days[m.di]);
-                    if (m.p.name !== '—' && m.p.link) {
-                      return `<li><a href="${m.p.link}" target="_blank" rel="noopener noreferrer">${m.p.name}</a> (${dayLabel}, ${m.p.role})</li>`;
-                    }
-                    return `<li>${m.p.name} (${dayLabel}, ${m.p.role})</li>`;
-                  })
-                  .join('');
-
-          return `
-            <tr>
-              <td>
-                ${titleHtml}
-                ${actionHtml}
-              </td>
-              <td>
-                <ul style="margin:0;padding:0;list-style:none;">
-                  ${participantsHtml}
-                </ul>
-              </td>
-            </tr>
-          `;
-        })
-        .join('');
-
-      return `
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Scenario</th>
-                <th>Participants (Date, Role)</th>
-              </tr>
-            </thead>
-            <tbody>${scenarioRows}</tbody>
-          </table>
-        </div>
-      `;
-    }
-
-    function renderMyScheduleTab() {
-      const myName = window.qaSchedulerName || '';
-
-      let content = `
-        <div style="margin-bottom:16px;">
-          <label>
-            Enter your name:
-            <select style="margin-left:8px;" id="myname-select">
-              <option value=""></option>
-              ${employees
-                .map(e => `<option value="${e}"${e === myName ? ' selected' : ''}>${e}</option>`)
-                .join('')}
-            </select>
-          </label>
-        </div>
-      `;
-
-      if (!myName) {
-        return content;
-      }
-
-      const participations = days.flatMap((d, di) =>
-        d.participants
-          .filter(p => p.name === myName)
-          .map(p => ({ p, di, day: d }))
-      );
-
-      if (participations.length === 0) {
-        return (
-          content +
-          `<div>No records for <b>${myName}</b></div>`
-        );
-      }
-
-      const rows = participations
-        .map(part => {
-          const scenarioCell = part.p.scenario ? getScenarioLinkHtml(part.p.scenario) : '—';
-          return `
-            <tr>
-              <td>${getDayDateLabel(days[part.di])}</td>
-              <td>${scenarioCell}</td>
-              <td>${part.p.role}</td>
-            </tr>
-          `;
-        })
-        .join('');
-
-      content += `
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Scenario</th>
-                <th>Role</th>
-              </tr>
-            </thead>
-            <tbody>${rows}</tbody>
-          </table>
-        </div>
-      `;
-
-      return content;
-    }
-
-    function renderReportTab() {
-      return `
-        <div class="report-block">
-          <h2>📋 Comment Report Instructions</h2>
-          <p><strong>After placing your comment</strong> on the platform (Reddit, Kaggle, StackOverflow, etc.), you need to:</p>
-          <ol>
-            <li>Click the button below to open the Report Sheet</li>
-            <li>Paste the link to your posted comment into the appropriate column</li>
-            <li>This helps track all comments and ensures quality control</li>
-          </ol>
-          <a
-            href="https://docs.google.com/spreadsheets/d/1lNUUJuXtXkXH0qqD_AlYekEdXH522_ualgqAcPF6MN8/edit?gid=1343601908#gid=1343601908"
-            target="_blank"
-            class="report-link-btn"
-          >
-            📊 Open Report Sheet
-          </a>
-        </div>
-      `;
-    }
-
-    const tabContent = document.getElementById('tab-content');
-    const tabBtns = Array.from(document.querySelectorAll('.tab-btn'));
-
-    let activeTab = 'by-days';
-    let activeDayIdx = 0;
-
-    function renderActiveTab() {
+    function render() {
       if (activeTab === 'by-days') {
-        tabContent.innerHTML = renderByDaysTab(activeDayIdx);
-
-        const dayBtns = tabContent.querySelectorAll('.day-btn');
-        dayBtns.forEach((btn, i) => {
-          btn.addEventListener('click', () => {
-            activeDayIdx = i;
-            renderActiveTab();
-          });
-        });
-
+        renderByDaysTab();
+      } else if (activeTab === 'by-employees') {
+        renderByEmployeesTab();
+      } else if (activeTab === 'by-platforms') {
+        renderByPlatformsTab();
       } else if (activeTab === 'stats') {
-        tabContent.innerHTML = renderStatsTab();
-
-      } else if (activeTab === 'by-scenarios') {
-        tabContent.innerHTML = renderScenariosTab();
-
-        const linkButtons = tabContent.querySelectorAll('.set-topic-link-btn');
-        linkButtons.forEach(btn => {
-          btn.addEventListener('click', () => {
-            const id = Number(btn.getAttribute('data-scenario-id'));
-            const scenario = scenarios.find(s => s.id === id);
-            const currentUrl = (scenario && scenario.topicUrl) || '';
-
-            const newUrl = window.prompt('Paste the link to the published topic', currentUrl);
-            if (!newUrl) {
-              return;
-            }
-
-            scenarioLinks[String(id)] = newUrl;
-            if (scenario) {
-              scenario.topicUrl = newUrl;
-            }
-            saveScenarioLinksToStorage();
-            renderActiveTab();
-          });
-        });
-
-      } else if (activeTab === 'my-schedule') {
-        tabContent.innerHTML = renderMyScheduleTab();
-
-        const sel = tabContent.querySelector('#myname-select');
-        if (sel) {
-          sel.addEventListener('change', () => {
-            window.qaSchedulerName = sel.value;
-            renderActiveTab();
-          });
-        }
-
-      } else if (activeTab === 'report') {
-        tabContent.innerHTML = renderReportTab();
+        renderStatsTab();
       }
     }
 
-    tabBtns.forEach(btn => {
+    document.querySelectorAll('.tab-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        tabBtns.forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         activeTab = btn.getAttribute('data-tab');
-        renderActiveTab();
+        render();
       });
     });
 
-    renderActiveTab();
+    render();
   </script>
 </body>
 </html>
