@@ -302,6 +302,7 @@
     const scheduleData = {
       "Divine": [
         { date: "10.12", gid: "1745650365", range: "A1:A2" },
+        { date: "10.12", gid: "1332544562", range: "A1" },
         { date: "17.12", gid: "1480305097", range: "A15" },
         { date: "16.12", gid: "641959591", range: "A12" }
       ],
@@ -311,47 +312,50 @@
         { date: "17.12", gid: "641959591", range: "A13" }
       ],
       "usmirnova": [
-        { date: "11.12", gid: "1745650365", range: "A6" },
         { date: "10.12", gid: "1332544562", range: "A4" },
-        { date: "10.12", gid: "66643352", range: "A1:A2" }
+        { date: "10.12", gid: "66643352", range: "A1:A2" },
+        { date: "11.12", gid: "1745650365", range: "A6" }
       ],
       "imnatalie": [
-        { date: "12.12", gid: "1745650365", range: "A8" },
-        { date: "11.12", gid: "1332544562", range: "A6" },
         { date: "10.12", gid: "66643352", range: "A4" },
-        { date: "10.12", gid: "686295720", range: "A1:A3" }
+        { date: "10.12", gid: "686295720", range: "A1:A3" },
+        { date: "12.12", gid: "1745650365", range: "A8" },
+        { date: "11.12", gid: "1332544562", range: "A6" }
       ],
       "Roman": [
-        { date: "15.12", gid: "1745650365", range: "A10" },
-        { date: "11.12", gid: "66643352", range: "A6" },
         { date: "10.12", gid: "686295720", range: "A5" },
-        { date: "10.12", gid: "591510053", range: "A1:A3" }
+        { date: "10.12", gid: "591510053", range: "A1:A3" },
+        { date: "15.12", gid: "1745650365", range: "A10" },
+        { date: "11.12", gid: "66643352", range: "A6" }
       ],
       "Viktor": [
+        { date: "10.12", gid: "591510053", range: "A5" },
+        { date: "10.12", gid: "1480305097", range: "A1:A3" },
         { date: "16.12", gid: "1745650365", range: "A12" },
         { date: "15.12", gid: "1332544562", range: "A8" },
         { date: "12.12", gid: "66643352", range: "A8" },
-        { date: "11.12", gid: "686295720", range: "A7" },
-        { date: "10.12", gid: "591510053", range: "A5" },
-        { date: "10.12", gid: "1480305097", range: "A1:A3" }
+        { date: "11.12", gid: "686295720", range: "A7" }
       ],
       "Nikolay": [
+        { date: "10.12", gid: "1480305097", range: "A5" },
+        { date: "10.12", gid: "641959591", range: "A1:A2" },
         { date: "17.12", gid: "1745650365", range: "A14" },
         { date: "16.12", gid: "1332544562", range: "A10" },
         { date: "15.12", gid: "66643352", range: "A10" },
         { date: "12.12", gid: "686295720", range: "A9" },
-        { date: "11.12", gid: "591510053", range: "A7" },
-        { date: "10.12", gid: "1480305097", range: "A5" },
-        { date: "10.12", gid: "641959591", range: "A1:A2" }
+        { date: "11.12", gid: "591510053", range: "A7" }
       ],
       "Asia": [
+        { date: "10.12", gid: "641959591", range: "A4" },
+        { date: "10.12", gid: "1745650365", range: "A5" },
         { date: "16.12", gid: "66643352", range: "A12" },
         { date: "15.12", gid: "686295720", range: "A11" },
         { date: "12.12", gid: "591510053", range: "A9" },
-        { date: "11.12", gid: "1480305097", range: "A7" },
-        { date: "10.12", gid: "641959591", range: "A4" }
+        { date: "11.12", gid: "1480305097", range: "A7" }
       ],
       "Dariya": [
+        { date: "10.12", gid: "1745650365", range: "A7" },
+        { date: "10.12", gid: "66643352", range: "A5" },
         { date: "17.12", gid: "66643352", range: "A14" },
         { date: "16.12", gid: "686295720", range: "A13" },
         { date: "15.12", gid: "591510053", range: "A11" },
@@ -359,12 +363,16 @@
         { date: "11.12", gid: "641959591", range: "A6" }
       ],
       "Julia": [
+        { date: "10.12", gid: "686295720", range: "A5" },
+        { date: "10.12", gid: "1480305097", range: "A3" },
         { date: "17.12", gid: "686295720", range: "A15" },
         { date: "16.12", gid: "591510053", range: "A13" },
         { date: "15.12", gid: "1480305097", range: "A11" },
         { date: "12.12", gid: "641959591", range: "A8" }
       ],
       "Polina": [
+        { date: "10.12", gid: "591510053", range: "A7" },
+        { date: "10.12", gid: "1480305097", range: "A5" },
         { date: "17.12", gid: "591510053", range: "A15" },
         { date: "16.12", gid: "1480305097", range: "A13" },
         { date: "15.12", gid: "641959591", range: "A10" }
@@ -400,10 +408,10 @@
       const rows = [];
       
       for (const [emp, entries] of Object.entries(scheduleData)) {
-        const matchingEntry = entries.find(e => e.date === dates[activeDayIdx]);
-        if (matchingEntry) {
-          const url = buildUrl(matchingEntry.gid, matchingEntry.range);
-          const platform = platforms[matchingEntry.gid];
+        const matchingEntries = entries.filter(e => e.date === dates[activeDayIdx]);
+        for (const entry of matchingEntries) {
+          const url = buildUrl(entry.gid, entry.range);
+          const platform = platforms[entry.gid];
           rows.push(`
             <tr>
               <td><a href="${url}" target="_blank">${emp}</a></td>
